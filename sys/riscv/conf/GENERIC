@@ -88,10 +88,16 @@ device		rcons
 # pseudo devices
 device		clk
 device		hwreset
+device		phy
 device		regulator
 device		syscon
 device		syscon_power
 device		riscv_syscon
+
+# MMC/SD/SDIO Card slot support
+device		mmc			# MMC/SD bus
+device		mmcsd			# MMC/SD flash cards
+device		sdhci			# SD controller
 
 # Bus drivers
 device		pci
@@ -155,6 +161,9 @@ device		goldfish_rtc	# QEMU RTC
 device		cgem		# Cadence GEM Gigabit Ethernet device
 device		miibus		# MII bus support
 device		xae		# Xilinx AXI Ethernet MAC
+
+# Pinmux
+device		fdt_pinctrl
 
 # DMA support
 device		xdma		# DMA interface
@@ -222,3 +231,6 @@ device		fu740_pci_dw
 device		sifive_gpio
 device		sifive_spi
 include		"../sifive/std.sifive"
+
+# SOC-specific modules
+makeoptions	MODULES_EXTRA+="allwinner/aw_mmc"
