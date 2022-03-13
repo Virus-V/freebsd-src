@@ -105,6 +105,13 @@ struct plic_softc {
 
 static u_int plic_irq_cpu;
 
+static struct ofw_compat_data compat_data[] = {
+	{ "riscv,plic0",	1 },
+	{ "sifive,plic-1.0.0",	1 },
+	{ "thead,c900-plic",	1 },
+	{ NULL,			0 }
+};
+
 static int
 riscv_hartid_to_cpu(int hartid)
 {
@@ -229,8 +236,7 @@ plic_probe(device_t dev)
 	if (!ofw_bus_status_okay(dev))
 		return (ENXIO);
 
-	if (!ofw_bus_is_compatible(dev, "riscv,plic0") &&
-	    !ofw_bus_is_compatible(dev, "sifive,plic-1.0.0"))
+	if (ofw_bus_search_compatible(dev, compat_data)->ocd_data == 0)
 		return (ENXIO);
 
 	device_set_desc(dev, "RISC-V PLIC");
@@ -369,7 +375,15 @@ plic_attach(device_t dev)
 
 	csr_set(sie, SIE_SEIE);
 
-	return (intr_pic_claim_root(sc->dev, xref, plic_intr, sc, 0));
+	if (intr_pic_claim_root(sc->dev, xref, plic_intr, sc, 0) != 0) {
+		device_printf(dev, "could not set PIC as a root\n");
+		intr_pic_deregister(sc->dev, xref);
+		return (ENXIO);
+	}
+
+	OF_device_register_xref(xref, sc->dev);
+
+	return (0);
 }
 
 static void
