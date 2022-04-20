@@ -85,6 +85,7 @@ device		rcons
 # pseudo devices
 device		clk
 device		hwreset
+device		regulator
 device		syscon
 device		syscon_power
 device		riscv_syscon
@@ -158,6 +159,7 @@ device		axidma		# Xilinx AXI DMA Controller
 
 # GPIO
 device		gpio
+device		fdt_pinctrl
 
 # SPI
 device		spibus
@@ -207,6 +209,7 @@ device		iicoc		# OpenCores I2C controller support
 
 # Allwinner device drivers
 device		aw_ccu		# Allwinner clock controller
+device		aw_gpio		# Allwinner GPIO controller
 device		aw_rtc		# Allwinner Real-time Clock
 device		aw_wdog		# Allwinner Watchdog
 files		"../allwinner/files.allwinner"
