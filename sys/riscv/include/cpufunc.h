@@ -109,18 +109,35 @@ sfence_vma_page(uintptr_t addr)
 
 extern int64_t dcache_line_size;
 extern int64_t icache_line_size;
+extern int64_t idcache_line_size;
 
-#define	cpu_dcache_wbinv_range(a, s)
-#define	cpu_dcache_inv_range(a, s)
-#define	cpu_dcache_wb_range(a, s)
+struct cpu_functions {
+	void	(*cf_cache_setup)(void);
+	void	(*cf_dcache_inv_range)		(vm_offset_t, vm_size_t);
+	void	(*cf_dcache_wb_range)		(vm_offset_t, vm_size_t);
+	void	(*cf_dcache_wbinv_range)	(vm_offset_t, vm_size_t);
+	void	(*cf_icache_sync_range)		(vm_offset_t, vm_size_t);
+	void	(*cf_icache_sync_range_checked)	(vm_offset_t, vm_size_t);
+	void	(*cf_idcache_wbinv_range)	(vm_offset_t, vm_size_t);
+};
 
-#define	cpu_idcache_wbinv_range(a, s)
-#define	cpu_icache_sync_range(a, s)
-#define	cpu_icache_sync_range_checked(a, s)
+extern struct cpu_functions cpufuncs;
+
+#define	cpu_cache_setup()	cpufuncs.cf_cache_setup()
+
+#define	cpu_dcache_wbinv_range(a, s)	cpufuncs.cf_dcache_wbinv_range((a), (s))
+#define	cpu_dcache_inv_range(a, s)  	cpufuncs.cf_dcache_inv_range((a), (s))
+#define	cpu_dcache_wb_range(a, s)   	cpufuncs.cf_dcache_wb_range((a), (s))
+
+#define	cpu_idcache_wbinv_range(a, s)		cpufuncs.cf_idcache_wbinv_range((a), (s))
+#define	cpu_icache_sync_range(a, s)  		cpufuncs.cf_icache_sync_range((a), (s))
+#define	cpu_icache_sync_range_checked(a, s)	cpufuncs.cf_icache_sync_range_checked((a), (s))
 
 #define	cpufunc_nullop()		riscv_nullop()
 
 void riscv_nullop(void);
+
+int set_cpufuncs(void);
 
 #endif	/* _KERNEL */
 #endif	/* _MACHINE_CPUFUNC_H_ */

@@ -324,17 +324,6 @@ try_load_dtb(caddr_t kmdp)
 }
 #endif
 
-static void
-cache_setup(void)
-{
-
-	/* TODO */
-
-	dcache_line_size = 0;
-	icache_line_size = 0;
-	idcache_line_size = 0;
-}
-
 /*
  * Fake up a boot descriptor table.
  */
@@ -501,6 +490,8 @@ initriscv(struct riscv_bootparams *rvbp)
 	}
 	lastaddr = parse_metadata();
 
+	set_cpufuncs();
+
 #ifdef FDT
 	/*
 	 * Look for the boot hart ID. This was either passed in directly from
@@ -542,7 +533,7 @@ initriscv(struct riscv_bootparams *rvbp)
 	/* Do basic tuning, hz etc */
 	init_param1();
 
-	cache_setup();
+	cpu_cache_setup();
 
 	/* Bootstrap enough of pmap to enter the kernel proper */
 	kernlen = (lastaddr - KERNBASE);

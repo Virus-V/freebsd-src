@@ -49,6 +49,8 @@
 
 #ifdef _KERNEL
 
+#define CPU_VENDOR_THEAD	0x5B7
+
 /*
  * Core manufacturer IDs, as reported by the mvendorid CSR.
  */
