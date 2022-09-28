@@ -313,7 +313,7 @@ mmc_fdt_gpio_get_present(struct mmc_helper *helper)
 	if (helper->cd_disabled)
 		return (true);
 	if (helper->cd_pin == NULL)
-		return (false);
+		return (true);
 
 	gpio_pin_is_active(helper->cd_pin, &pinstate);
 
