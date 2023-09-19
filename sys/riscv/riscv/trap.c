@@ -161,6 +161,7 @@ dump_regs(struct trapframe *frame)
 {
 	char name[6];
 	int i;
+  uintptr_t temp;
 
 	for (i = 0; i < nitems(frame->tf_t); i++) {
 		snprintf(name, sizeof(name), "t[%d]", i);
@@ -183,6 +184,25 @@ dump_regs(struct trapframe *frame)
 	print_with_symbol("tp", frame->tf_tp);
 	print_with_symbol("sepc", frame->tf_sepc);
 	printf("sstatus: 0x%016lx\n", frame->tf_sstatus);
+
+  /* read satp */
+  temp = csr_read64(satp);
+  printf("satp: 0x%016lx\n", temp);
+
+  /* read scause */
+  temp = csr_read64(scause);
+  printf("scause: 0x%016lx\n", temp);
+
+  /* read stval */
+  temp = csr_read64(stval);
+  printf("stval: 0x%016lx\n", temp);
+
+  /* read shcr */
+  temp = csr_read64(0x5c1);
+  printf("shcr: 0x%016lx\n", temp);
+
+  temp = csr_read64(0x5C0);
+  printf("sxstatus == 0x%016lx\n", temp);
 }
 
 static void

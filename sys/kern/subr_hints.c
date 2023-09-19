@@ -126,9 +126,9 @@ res_find(char **hintp_cookie, int *line, int *startln,
     const char **ret_resname, int *ret_resnamelen, const char **ret_value)
 {
 	int fbacklvl = FBACK_MDENV, i = 0, n = 0, namelen;
-	char r_name[32];
+	char r_name[33];
 	int r_unit;
-	char r_resname[32];
+	char r_resname[33];
 	char r_value[128];
 	const char *s, *cp;
 	char *hintp, *p;

@@ -44,6 +44,7 @@
 #include <machine/pcb.h>
 #include <machine/stack.h>
 #include <machine/vmparam.h>
+#include <machine/encoding.h>
 
 static int
 db_frame(struct db_variable *vp, db_expr_t *valuep, int op)
@@ -58,6 +59,24 @@ db_frame(struct db_variable *vp, db_expr_t *valuep, int op)
 		*valuep = *reg;
 	else
 		*reg = *valuep;
+	return (1);
+}
+
+static int
+db_csr(struct db_variable *vp, db_expr_t *valuep, int op)
+{
+	if (op == DB_VAR_GET) {
+    switch ((uintptr_t)vp->valuep) {
+      case CSR_SATP:
+        *valuep = csr_read64(CSR_SATP);
+        break;
+      case 0x5C0:
+        *valuep = csr_read64(0x5C0);
+        break;
+    }
+  } else {
+    return 0;
+  }
 	return (1);
 }
 
@@ -98,6 +117,8 @@ struct db_variable db_regs[] = {
 	{ "sstatus",	DB_OFFSET(tf_sstatus),	db_frame },
 	{ "stval",	DB_OFFSET(tf_stval),	db_frame },
 	{ "scause",	DB_OFFSET(tf_scause),	db_frame },
+	{ "satp",	(db_expr_t *)(uintptr_t)CSR_SATP,	db_csr },
+	{ "sxstatus",	(db_expr_t *)(uintptr_t)0x5C0,	db_csr },
 };
 
 struct db_variable *db_eregs = db_regs + nitems(db_regs);

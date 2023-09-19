@@ -454,6 +454,12 @@ parse_metadata(void)
 	return (lastaddr);
 }
 
+static void flush_dcache_all(void)
+{
+  __asm volatile (".long 0x0030000b" ::: "memory"); /* dcache.ciall */
+  __asm volatile (".long 0x01a0000b" ::: "memory"); /* sync.i */
+}
+
 void
 initriscv(struct riscv_bootparams *rvbp)
 {
@@ -467,6 +473,8 @@ initriscv(struct riscv_bootparams *rvbp)
 	uint32_t hart;
 #endif
 	char *env;
+
+  flush_dcache_all();
 
 	TSRAW(&thread0, TS_ENTER, __func__, NULL);
 
@@ -523,6 +531,9 @@ initriscv(struct riscv_bootparams *rvbp)
 		panic("Cannot get physical memory regions");
 	}
 	physmem_hardware_regions(mem_regions, mem_regions_sz);
+  for (int i=0; i<mem_regions_sz;i++) {
+    printf("mem_regions[%d]: %lx %lx\n", i, mem_regions[i].mr_start, mem_regions[i].mr_size);
+  }
 #endif
 
 	/*
@@ -539,18 +550,6 @@ initriscv(struct riscv_bootparams *rvbp)
 	kernlen = (lastaddr - KERNBASE);
 	pmap_bootstrap(rvbp->kern_l1pt, rvbp->kern_phys, kernlen);
 
-#ifdef FDT
-	/*
-	 * XXX: Unconditionally exclude the lowest 2MB of physical memory, as
-	 * this area is assumed to contain the SBI firmware. This is a little
-	 * fragile, but it is consistent with the platforms we support so far.
-	 *
-	 * TODO: remove this when the all regular booting methods properly
-	 * report their reserved memory in the device tree.
-	 */
-	physmem_exclude_region(mem_regions[0].mr_start, L2_SIZE,
-	    EXFLAG_NODUMP | EXFLAG_NOALLOC);
-#endif
 	physmem_init_kernel_globals();
 
 	/* Establish static device mappings */

@@ -556,6 +556,7 @@ pmap_early_vtophys(vm_offset_t l1pt, vm_offset_t va)
 	return (ret);
 }
 
+#if 0
 static void
 pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 {
@@ -566,7 +567,9 @@ pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 	pt_entry_t entry;
 	pn_t pn;
 
-	pa = dmap_phys_base = min_pa & ~L1_OFFSET;
+	pa = dmap_phys_base = min_pa;
+  printf("pa: %lx\n", pa);
+
 	va = DMAP_MIN_ADDRESS;
 	l1 = (pd_entry_t *)kern_l1;
 	l1_slot = pmap_l1_index(DMAP_MIN_ADDRESS);
@@ -580,6 +583,7 @@ pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 		entry = PTE_KERN;
 		entry |= (pn << PTE_PPN0_S);
 		pmap_store(&l1[l1_slot], entry);
+    printf("%s:l1[%d] = %lx\n", __func__, l1_slot, entry);
 	}
 
 	/* Set the upper limit of the DMAP region */
@@ -588,6 +592,60 @@ pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 
 	sfence_vma();
 }
+#else
+static void
+pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
+{
+	vm_offset_t va;
+	vm_paddr_t pa;
+	pd_entry_t *l1, *dmap_l2;
+	u_int slot;
+	pt_entry_t entry;
+
+	pa = dmap_phys_base = min_pa;
+
+  /* Set the upper limit of the DMAP region First */
+	dmap_phys_max = max_pa;
+	dmap_max_addr = DMAP_MIN_ADDRESS + (max_pa - min_pa);
+
+	l1 = (pd_entry_t *)kern_l1;
+	slot = pmap_l1_index(DMAP_MIN_ADDRESS);
+
+  dmap_l2 = (pd_entry_t *)dmap_pt_va;
+
+  /* XXX fixup me !!! */
+  entry = dmap_pt_va - VM_MIN_KERNEL_ADDRESS + 0x50000000;
+  entry = entry >> PAGE_SHIFT;
+
+  entry <<= PTE_PPN0_S;
+  entry |= PTE_V;
+
+  /* Set l1 page table */
+  pmap_store(&l1[slot], entry);
+	sfence_vma();
+
+  /* L2 page table */
+  slot = pmap_l2_index(DMAP_MIN_ADDRESS);
+
+  for (va = DMAP_MIN_ADDRESS;
+      va < DMAP_MAX_ADDRESS && pa < max_pa;
+	    pa += L2_SIZE, va += L2_SIZE, slot++) {
+		KASSERT(slot < Ln_ENTRIES, ("Invalid L2 index"));
+
+		/* superpages */
+		entry = ((pa >> PAGE_SHIFT) << PTE_PPN0_S);
+		entry |= PTE_KERN;
+
+		pmap_store(&dmap_l2[slot], entry);
+	}
+
+	/* Set the upper limit of the DMAP region */
+  dmap_phys_max = pa;
+	dmap_max_addr = va;
+
+	sfence_vma();
+}
+#endif
 
 static vm_offset_t
 pmap_bootstrap_l3(vm_offset_t l1pt, vm_offset_t va, vm_offset_t l3_start)
@@ -753,7 +811,6 @@ pmap_bootstrap(vm_offset_t l1pt, vm_paddr_t kernstart, vm_size_t kernlen)
 	kernel_vm_end = virtual_avail;
 
 	pa = pmap_early_vtophys(l1pt, freemempos);
-
 	physmem_exclude_region(kernstart, pa - kernstart, EXFLAG_NOALLOC);
 }
 
@@ -910,7 +967,7 @@ pmap_invalidate_all(pmap_t pmap)
  *		Extract the physical page address associated
  *		with the given map/virtual_address pair.
  */
-vm_paddr_t 
+vm_paddr_t
 pmap_extract(pmap_t pmap, vm_offset_t va)
 {
 	pd_entry_t *l2p, l2;
@@ -1287,7 +1344,7 @@ _pmap_unwire_ptp(pmap_t pmap, vm_offset_t va, vm_page_t m, struct spglist *free)
 
 	vm_wire_sub(1);
 
-	/* 
+	/*
 	 * Put page on a list so that it is released after
 	 * *ALL* TLB shootdown is done
 	 */
@@ -1715,7 +1772,7 @@ pmap_growkernel(vm_offset_t addr)
 		kernel_vm_end = (kernel_vm_end + L2_SIZE) & ~L2_OFFSET;
 		if (kernel_vm_end - 1 >= vm_map_max(kernel_map)) {
 			kernel_vm_end = vm_map_max(kernel_map);
-			break;                       
+			break;
 		}
 	}
 }
@@ -2251,7 +2308,7 @@ pmap_remove_l2(pmap_t pmap, pt_entry_t *l2, vm_offset_t sva,
  * pmap_remove_l3: do the things to unmap a page in a process
  */
 static int
-pmap_remove_l3(pmap_t pmap, pt_entry_t *l3, vm_offset_t va, 
+pmap_remove_l3(pmap_t pmap, pt_entry_t *l3, vm_offset_t va,
     pd_entry_t l2e, struct spglist *free, struct rwlock **lockp)
 {
 	struct md_page *pvh;
@@ -3610,7 +3667,7 @@ pmap_zero_page(vm_page_t m)
 }
 
 /*
- *	pmap_zero_page_area zeros the specified hardware page by mapping 
+ *	pmap_zero_page_area zeros the specified hardware page by mapping
  *	the page into KVM and using bzero to clear its contents.
  *
  *	off and size may not cover an area beyond a single hardware page.

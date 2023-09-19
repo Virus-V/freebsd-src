@@ -321,6 +321,8 @@ pagetable_l2:
 	.space	PAGE_SIZE
 pagetable_l2_devmap:
 	.space	PAGE_SIZE
+pagetable_l2_dmap:
+	.space	PAGE_SIZE
 
 	.align 3
 virt_map:
@@ -331,6 +333,10 @@ hart_lottery:
 	.globl init_pt_va
 init_pt_va:
 	.quad pagetable_l2	/* XXX: Keep page tables VA */
+
+	.globl dmap_pt_va
+dmap_pt_va:
+	.quad pagetable_l2_dmap	/* XXX: Keep page tables VA */
 
 #ifndef SMP
 ENTRY(mpentry)

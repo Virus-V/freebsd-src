@@ -20,61 +20,66 @@
 cpu		RISCV
 ident		GENERIC
 
+maxusers	1
+
 makeoptions	DEBUG=-g		# Build kernel with gdb(1) debug symbols
-makeoptions	WITH_CTF=1		# Run ctfconvert(1) for DTrace support
+#makeoptions	WITH_CTF=1		# Run ctfconvert(1) for DTrace support
 
 options 	SCHED_ULE		# ULE scheduler
 options 	PREEMPTION		# Enable kernel thread preemption
-options 	VIMAGE			# Subsystem virtualization, e.g. VNET
+#options 	VIMAGE			# Subsystem virtualization, e.g. VNET
 options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
-options 	TCP_HHOOK		# hhook(9) framework for TCP
-options 	IPSEC_SUPPORT		# Allow kldload of ipsec and tcpmd5
-options 	ROUTE_MPATH		# Multipath routing support
+#options 	TCP_HHOOK		# hhook(9) framework for TCP
+#options 	IPSEC_SUPPORT		# Allow kldload of ipsec and tcpmd5
+options		ROUTE_MPATH		# Multipath routing support
 options 	TCP_OFFLOAD		# TCP offload
-options 	TCP_BLACKBOX		# Enhanced TCP event logging
-options 	TCP_RFC7413		# TCP Fast Open
-options 	SCTP_SUPPORT		# Allow kldload of SCTP
+#options 	SCTP_SUPPORT		# Allow kldload of SCTP
 options 	FFS			# Berkeley Fast Filesystem
-options 	SOFTUPDATES		# Enable FFS soft updates support
+#options 	SOFTUPDATES		# Enable FFS soft updates support
 options 	UFS_ACL			# Support for access control lists
-options 	UFS_DIRHASH		# Improve performance on big directories
+#options 	UFS_DIRHASH		# Improve performance on big directories
 options 	UFS_GJOURNAL		# Enable gjournal-based UFS journaling
-options 	QUOTA			# Enable disk quotas for UFS
-options 	NFSCL			# Network Filesystem Client
-options 	NFSD			# Network Filesystem Server
-options 	NFSLOCKD		# Network Lock Manager
-options 	NFS_ROOT		# NFS usable as /, requires NFSCL
-options 	MSDOSFS			# MSDOS Filesystem
-options 	CD9660			# ISO 9660 Filesystem
+#options 	QUOTA			# Enable disk quotas for UFS
+#options 	NFSCL			# Network Filesystem Client
+#options 	NFSD			# Network Filesystem Server
+#options 	NFSLOCKD		# Network Lock Manager
+#options 	NFS_ROOT		# NFS usable as /, requires NFSCL
+#options 	MSDOSFS			# MSDOS Filesystem
+#options 	CD9660			# ISO 9660 Filesystem
 options 	PROCFS			# Process filesystem (requires PSEUDOFS)
 options 	PSEUDOFS		# Pseudo-filesystem framework
 options 	TMPFS			# Efficient memory filesystem
-options 	GEOM_RAID		# Soft RAID functionality.
+options 	GEOM_PART_GPT		# GUID Partition Tables.
+#options 	GEOM_RAID		# Soft RAID functionality.
 options 	GEOM_LABEL		# Provides labelization
-options 	COMPAT_FREEBSD12	# Compatible with FreeBSD12
-options 	COMPAT_FREEBSD13	# Compatible with FreeBSD13
-options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
-options 	KTRACE			# ktrace(1) support
-options 	STACK			# stack(9) support
+#options 	COMPAT_FREEBSD12	# Compatible with FreeBSD12
+#options 	COMPAT_FREEBSD13	# Compatible with FreeBSD13
+#options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
+#options 	KTRACE			# ktrace(1) support
+#options 	STACK			# stack(9) support
 options 	SYSVSHM			# SYSV-style shared memory
 options 	SYSVMSG			# SYSV-style message queues
 options 	SYSVSEM			# SYSV-style semaphores
 options 	_KPOSIX_PRIORITY_SCHEDULING # POSIX P1003_1B real-time extensions
 options 	PRINTF_BUFR_SIZE=128	# Prevent printf output being interspersed.
-options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
+#options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
 # options 	HWPMC_HOOKS		# Necessary kernel hooks for hwpmc(4)
-options 	AUDIT			# Security event auditing
-options 	CAPABILITY_MODE		# Capsicum capability mode
-options 	CAPABILITIES		# Capsicum capabilities
-options 	MAC			# TrustedBSD MAC Framework
-options 	KDTRACE_FRAME		# Ensure frames are compiled in
-options 	KDTRACE_HOOKS		# Kernel DTrace hooks
-options 	DDB_CTF			# Kernel ELF linker loads CTF data
-options 	RACCT			# Resource accounting framework
-options 	RACCT_DEFAULT_TO_DISABLED # Set kern.racct.enable=0 by default
-options 	RCTL			# Resource limits
-options 	SMP
+#options 	AUDIT			# Security event auditing
+#options 	CAPABILITY_MODE		# Capsicum capability mode
+#options 	CAPABILITIES		# Capsicum capabilities
+#options 	MAC			# TrustedBSD MAC Framework
+#options 	KDTRACE_FRAME		# Ensure frames are compiled in
+#options 	KDTRACE_HOOKS		# Kernel DTrace hooks
+#options 	DDB_CTF			# Kernel ELF linker loads CTF data
+#options 	RACCT			# Resource accounting framework
+#options 	RACCT_DEFAULT_TO_DISABLED # Set kern.racct.enable=0 by default
+#options 	RCTL			# Resource limits
+#options 	SMP
+options 	INTRNG
+options		NO_SYSCTL_DESCR
+options 	NO_SWAPPING
+options   MSGBUF_SIZE=16384
 
 # CPU support
 options		CPU_THEAD
@@ -95,45 +100,45 @@ device		syscon_power
 device		riscv_syscon
 
 # MMC/SD/SDIO Card slot support
-device		mmc			# MMC/SD bus
-device		mmcsd			# MMC/SD flash cards
-device		sdhci			# SD controller
+#device		mmc			# MMC/SD bus
+#device		mmcsd			# MMC/SD flash cards
+#device		sdhci			# SD controller
 
 # Bus drivers
-device		pci
+#device		pci
 
 # Block devices
-device		scbus
-device		da
+#device		scbus
+#device		da
 
 # VirtIO support
 device		virtio			# Generic VirtIO bus (required)
-device		virtio_pci		# VirtIO PCI device
+#device		virtio_pci		# VirtIO PCI device
 device		vtnet			# VirtIO Ethernet device
 device		virtio_blk		# VirtIO Block device
-device		virtio_mmio		# VirtIO MMIO bus
+#device		virtio_mmio		# VirtIO MMIO bus
 
 # ATA/SCSI peripherals
-device		pass			# Passthrough device (direct ATA/SCSI access)
+#device		pass			# Passthrough device (direct ATA/SCSI access)
 
 # NVM Express (NVMe) support
-device		nvme		# base NVMe driver
-options 	NVME_USE_NVD=0	# prefer the cam(4) based nda(4) driver
-device		nvd		# expose NVMe namespaces as disks, depends on nvme
+#device		nvme		# base NVMe driver
+#options 	NVME_USE_NVD=0	# prefer the cam(4) based nda(4) driver
+#device		nvd		# expose NVMe namespaces as disks, depends on nvme
 
 # USB support
-options 	USB_DEBUG		# enable debug msgs
-device		ohci			# OHCI USB interface
-device		uhci			# UHCI USB interface
-device		ehci			# EHCI USB interface (USB 2.0)
-device		xhci			# XHCI USB interface (USB 3.0)
-device		usb			# USB Bus (required)
-device		ukbd			# Keyboard
-device		umass			# Disks/Mass storage - Requires scbus and da
+#options 	USB_DEBUG		# enable debug msgs
+#device		ohci			# OHCI USB interface
+#device		uhci			# UHCI USB interface
+#device		ehci			# EHCI USB interface (USB 2.0)
+#device		xhci			# XHCI USB interface (USB 3.0)
+#device		usb			# USB Bus (required)
+#device		ukbd			# Keyboard
+#device		umass			# Disks/Mass storage - Requires scbus and da
 
 # HID support
-options 	HID_DEBUG	# enable debug msgs
-device		hid		# Generic HID support
+#options 	HID_DEBUG	# enable debug msgs
+#device		hid		# Generic HID support
 
 # DTrace support
 # device	dtrace
@@ -146,28 +151,28 @@ device		hid		# Generic HID support
 
 # Serial (COM) ports
 device		uart		# Generic UART driver
-device		uart_lowrisc	# lowRISC UART driver
-device		uart_ns8250	# ns8250-type UART driver
+#device		uart_lowrisc	# lowRISC UART driver
+#device		uart_ns8250	# ns8250-type UART driver
 
 # Console
-device		vt
-device		kbdmux
+#device		vt
+#device		kbdmux
 
 # RTC
-device		da9063_rtc	# Dialog Semiconductor DA9063 RTC
-device		goldfish_rtc	# QEMU RTC
+#device		da9063_rtc	# Dialog Semiconductor DA9063 RTC
+#device		goldfish_rtc	# QEMU RTC
 
 # Ethernet drivers
-device		cgem		# Cadence GEM Gigabit Ethernet device
-device		miibus		# MII bus support
-device		xae		# Xilinx AXI Ethernet MAC
+#device		cgem		# Cadence GEM Gigabit Ethernet device
+#device		miibus		# MII bus support
+#device		xae		# Xilinx AXI Ethernet MAC
 
 # Pinmux
 device		fdt_pinctrl
 
 # DMA support
 device		xdma		# DMA interface
-device		axidma		# Xilinx AXI DMA Controller
+#device		axidma		# Xilinx AXI DMA Controller
 
 # GPIO
 device		gpio
@@ -178,7 +183,34 @@ device		spibus
 device		spigen
 
 # Power management controllers
-device		da9063_pmic	# Dialog Semiconductor DA9063 PMIC
+#device		da9063_pmic	# Dialog Semiconductor DA9063 PMIC
+
+#  The `wlan' device provides generic code to support 802.11
+#  drivers, including host AP mode; it is MANDATORY for the wi,
+#  and ath drivers and will eventually be required by all 802.11 drivers.
+device		wlan
+options 	IEEE80211_DEBUG		#enable debugging msgs
+options 	IEEE80211_SUPPORT_MESH	#enable 802.11s D3.0 support
+options 	IEEE80211_SUPPORT_TDMA	#enable TDMA support
+
+#  The `wlan_wep', `wlan_tkip', and `wlan_ccmp' devices provide
+#  support for WEP, TKIP, and AES-CCMP crypto protocols optionally
+#  used with 802.11 devices that depend on the `wlan' module.
+device		wlan_wep
+device		wlan_ccmp
+device		wlan_tkip
+
+#  The `wlan_xauth' device provides support for external (i.e. user-mode)
+#  authenticators for use with 802.11 drivers that use the `wlan'
+#  module and support 802.1x and/or WPA security protocols.
+device		wlan_xauth
+
+#  The `wlan_acl' device provides a MAC-based access control mechanism
+#  for use with 802.11 drivers operating in ap mode and using the
+#  `wlan' module.
+#  The 'wlan_amrr' device provides AMRR transmit rate control algorithm
+device		wlan_acl
+device		wlan_amrr
 
 # Uncomment for memory disk
 # options 	MD_ROOT
@@ -191,7 +223,19 @@ device		da9063_pmic	# Dialog Semiconductor DA9063 PMIC
 
 # Debugging support.  Always need this:
 options 	KDB			# Enable kernel debugger support.
-options 	KDB_TRACE		# Print a stack trace for a panic.
+#options 	KDB_TRACE		# Print a stack trace for a panic.
+# For full debugger support use (turn off in stable branch):
+options 	DDB			# Support DDB.
+#options 	GDB			# Support remote GDB.
+options 	DEADLKRES		# Enable the deadlock resolver
+options 	INVARIANTS		# Enable calls of extra sanity checking
+options 	INVARIANT_SUPPORT	# Extra sanity checks of internal structures, required by INVARIANTS
+#options 	WITNESS			# Enable checks to detect deadlocks and cycles
+#options 	WITNESS_SKIPSPIN	# Don't run witness on spinlocks for speed
+options 	MALLOC_DEBUG_MAXZONES=8	# Separate malloc(9) zones
+options 	ALT_BREAK_TO_DEBUGGER	# Enter debugger on keyboard escape sequence
+options 	EARLY_PRINTF
+options 	VERBOSE_SYSINIT=0	# Support debug.verbose_sysinit, off by default
 
 # Kernel dump features.
 options 	ZSTDIO			# zstd-compressed kernel and user dumps
@@ -200,11 +244,11 @@ options 	ZSTDIO			# zstd-compressed kernel and user dumps
 device		crypto		# core crypto support
 device		loop		# Network loopback
 device		ether		# Ethernet support
-device		vlan		# 802.1Q VLAN support
-device		tuntap		# Packet tunnel.
+#device		vlan		# 802.1Q VLAN support
+#device		tuntap		# Packet tunnel.
 device		md		# Memory "disks"
-device		gif		# IPv6 and IPv4 tunneling
-device		firmware	# firmware assist module
+#device		gif		# IPv6 and IPv4 tunneling
+#device		firmware	# firmware assist module
 
 # The `bpf' device enables the Berkeley Packet Filter.
 # Be aware of the administrative consequences of enabling this!
@@ -217,20 +261,16 @@ makeoptions	MODULES_EXTRA+="dtb/sifive"
 
 # I2C support
 device		iicbus		# Bus support, required for iicoc below.
-device		iicoc		# OpenCores I2C controller support
+#device		iicoc		# OpenCores I2C controller support
 
-# Allwinner device drivers
-device		aw_ccu		# Allwinner clock controller
-device		aw_gpio		# Allwinner GPIO controller
-device		aw_rtc		# Allwinner Real-time Clock
-device		aw_wdog		# Allwinner Watchdog
-files		"../allwinner/files.allwinner"
+device    bl_xip
+files		"../bouffalolab/files.bouffalolab"
 
 # SiFive device drivers
-device		fu740_pci_dw
-device		sifive_gpio
-device		sifive_spi
-include		"../sifive/std.sifive"
+#device		fu740_pci_dw
+#device		sifive_gpio
+#device		sifive_spi
+#include		"../sifive/std.sifive"
 
 # SOC-specific modules
 makeoptions	MODULES_EXTRA+="allwinner/aw_mmc"

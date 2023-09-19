@@ -68,7 +68,7 @@
 /*
  * The number of PHYSSEG entries.
  */
-#define	VM_PHYSSEG_MAX		64
+#define	VM_PHYSSEG_MAX		4
 
 /*
  * Create two free page pools: VM_FREEPOOL_DEFAULT is the default pool
@@ -95,7 +95,7 @@
  * the physical memory allocator reduces the likelihood of both 4MB
  * page TLB misses and cache misses caused by 4MB page TLB misses.
  */
-#define	VM_NFREEORDER		12
+#define	VM_NFREEORDER		8
 
 /*
  * Enable superpage reservations: 1 level.
@@ -108,7 +108,7 @@
  * Level 0 reservations consist of 512 pages.
  */
 #ifndef	VM_LEVEL_0_ORDER
-#define	VM_LEVEL_0_ORDER	9
+#define	VM_LEVEL_0_ORDER	6
 #endif
 
 /**
@@ -163,8 +163,13 @@
 #define	VM_MIN_KERNEL_ADDRESS	(0xffffffc000000000UL)
 #define	VM_MAX_KERNEL_ADDRESS	(0xffffffc800000000UL)
 
+#if 1
 #define	DMAP_MIN_ADDRESS	(0xffffffd000000000UL)
 #define	DMAP_MAX_ADDRESS	(0xfffffff000000000UL)
+#else
+#define	DMAP_MIN_ADDRESS	VM_MIN_KERNEL_ADDRESS
+#define	DMAP_MAX_ADDRESS	VM_MAX_KERNEL_ADDRESS
+#endif
 
 #define	DMAP_MIN_PHYSADDR	(dmap_phys_base)
 #define	DMAP_MAX_PHYSADDR	(dmap_phys_max)
@@ -196,7 +201,7 @@
 #define	VM_MIN_USER_ADDRESS		(0x0000000000000000UL)
 #define	VM_MAX_USER_ADDRESS_SV39	(0x0000004000000000UL)
 #define	VM_MAX_USER_ADDRESS_SV48	(0x0000800000000000UL)
-#define	VM_MAX_USER_ADDRESS		VM_MAX_USER_ADDRESS_SV48
+#define	VM_MAX_USER_ADDRESS		VM_MAX_USER_ADDRESS_SV39
 
 #define	VM_MINUSER_ADDRESS	(VM_MIN_USER_ADDRESS)
 #define	VM_MAXUSER_ADDRESS	(VM_MAX_USER_ADDRESS)
@@ -204,10 +209,10 @@
 #define	KERNBASE		(VM_MIN_KERNEL_ADDRESS)
 #define	SHAREDPAGE_SV39		(VM_MAX_USER_ADDRESS_SV39 - PAGE_SIZE)
 #define	SHAREDPAGE_SV48		(VM_MAX_USER_ADDRESS_SV48 - PAGE_SIZE)
-#define	SHAREDPAGE		SHAREDPAGE_SV48
+#define	SHAREDPAGE		SHAREDPAGE_SV39
 #define	USRSTACK_SV39		SHAREDPAGE_SV39
 #define	USRSTACK_SV48		SHAREDPAGE_SV48
-#define	USRSTACK		USRSTACK_SV48
+#define	USRSTACK		USRSTACK_SV39
 #define	PS_STRINGS_SV39		(USRSTACK_SV39 - sizeof(struct ps_strings))
 #define	PS_STRINGS_SV48		(USRSTACK_SV48 - sizeof(struct ps_strings))
 
@@ -244,6 +249,7 @@ extern vm_paddr_t dmap_phys_max;
 extern vm_offset_t dmap_max_addr;
 extern vm_offset_t vm_max_kernel_address;
 extern vm_offset_t init_pt_va;
+extern vm_offset_t dmap_pt_va;
 #endif
 
 #define	ZERO_REGION_SIZE	(64 * 1024)	/* 64KB */
