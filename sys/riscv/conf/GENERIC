@@ -50,9 +50,9 @@ options 	UFS_GJOURNAL		# Enable gjournal-based UFS journaling
 options 	PROCFS			# Process filesystem (requires PSEUDOFS)
 options 	PSEUDOFS		# Pseudo-filesystem framework
 options 	TMPFS			# Efficient memory filesystem
-options 	GEOM_PART_GPT		# GUID Partition Tables.
+#options 	GEOM_PART_GPT		# GUID Partition Tables.
 #options 	GEOM_RAID		# Soft RAID functionality.
-options 	GEOM_LABEL		# Provides labelization
+#options 	GEOM_LABEL		# Provides labelization
 #options 	COMPAT_FREEBSD12	# Compatible with FreeBSD12
 #options 	COMPAT_FREEBSD13	# Compatible with FreeBSD13
 #options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
@@ -80,6 +80,10 @@ options 	INTRNG
 options		NO_SYSCTL_DESCR
 options 	NO_SWAPPING
 options   MSGBUF_SIZE=16384
+
+# Mount compressed root
+device xz
+options GEOM_UZIP
 
 # CPU support
 options		CPU_THEAD

@@ -192,7 +192,7 @@ bl_xip_delayed_attach(void *xsc)
 	sc->disk->d_close = bl_xip_close;
 	sc->disk->d_strategy = bl_xip_strategy;
 	sc->disk->d_getattr = bl_xip_getattr;
-	sc->disk->d_name = "flash/bl808";
+	sc->disk->d_name = "BL808/XIP";
 	sc->disk->d_drv1 = sc;
 	sc->disk->d_flags = DISKFLAG_WRITE_PROTECT;
 	sc->disk->d_maxsize = DFLTPHYS;
