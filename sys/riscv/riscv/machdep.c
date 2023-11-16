@@ -456,8 +456,8 @@ parse_metadata(void)
 
 static void flush_dcache_all(void)
 {
-  __asm volatile (".long 0x0030000b" ::: "memory"); /* dcache.ciall */
-  __asm volatile (".long 0x01a0000b" ::: "memory"); /* sync.i */
+	__asm volatile (".long 0x0030000b" ::: "memory"); /* dcache.ciall */
+	__asm volatile (".long 0x01a0000b" ::: "memory"); /* sync.i */
 }
 
 void
@@ -474,7 +474,7 @@ initriscv(struct riscv_bootparams *rvbp)
 #endif
 	char *env;
 
-  flush_dcache_all();
+	flush_dcache_all();
 
 	TSRAW(&thread0, TS_ENTER, __func__, NULL);
 
@@ -531,9 +531,9 @@ initriscv(struct riscv_bootparams *rvbp)
 		panic("Cannot get physical memory regions");
 	}
 	physmem_hardware_regions(mem_regions, mem_regions_sz);
-  for (int i=0; i<mem_regions_sz;i++) {
-    printf("mem_regions[%d]: %lx %lx\n", i, mem_regions[i].mr_start, mem_regions[i].mr_size);
-  }
+	for (int i=0; i<mem_regions_sz;i++) {
+		printf("mem_regions[%d]: %lx %lx\n", i, mem_regions[i].mr_start, mem_regions[i].mr_size);
+	}
 #endif
 
 	/*

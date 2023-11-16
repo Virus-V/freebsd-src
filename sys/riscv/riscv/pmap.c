@@ -556,43 +556,6 @@ pmap_early_vtophys(vm_offset_t l1pt, vm_offset_t va)
 	return (ret);
 }
 
-#if 0
-static void
-pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
-{
-	vm_offset_t va;
-	vm_paddr_t pa;
-	pd_entry_t *l1;
-	u_int l1_slot;
-	pt_entry_t entry;
-	pn_t pn;
-
-	pa = dmap_phys_base = min_pa;
-  printf("pa: %lx\n", pa);
-
-	va = DMAP_MIN_ADDRESS;
-	l1 = (pd_entry_t *)kern_l1;
-	l1_slot = pmap_l1_index(DMAP_MIN_ADDRESS);
-
-	for (; va < DMAP_MAX_ADDRESS && pa < max_pa;
-	    pa += L1_SIZE, va += L1_SIZE, l1_slot++) {
-		KASSERT(l1_slot < Ln_ENTRIES, ("Invalid L1 index"));
-
-		/* superpages */
-		pn = (pa / PAGE_SIZE);
-		entry = PTE_KERN;
-		entry |= (pn << PTE_PPN0_S);
-		pmap_store(&l1[l1_slot], entry);
-    printf("%s:l1[%d] = %lx\n", __func__, l1_slot, entry);
-	}
-
-	/* Set the upper limit of the DMAP region */
-	dmap_phys_max = pa;
-	dmap_max_addr = va;
-
-	sfence_vma();
-}
-#else
 static void
 pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 {
@@ -604,32 +567,33 @@ pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 
 	pa = dmap_phys_base = min_pa;
 
-  /* Set the upper limit of the DMAP region First */
+	/* Set the upper limit of the DMAP region First */
 	dmap_phys_max = max_pa;
 	dmap_max_addr = DMAP_MIN_ADDRESS + (max_pa - min_pa);
 
 	l1 = (pd_entry_t *)kern_l1;
 	slot = pmap_l1_index(DMAP_MIN_ADDRESS);
 
-  dmap_l2 = (pd_entry_t *)dmap_pt_va;
+	dmap_l2 = (pd_entry_t *)dmap_pt_va;
 
-  /* XXX fixup me !!! */
-  entry = dmap_pt_va - VM_MIN_KERNEL_ADDRESS + 0x50000000;
-  entry = entry >> PAGE_SHIFT;
+	/* XXX fixup me !!! */
+	entry = dmap_pt_va - VM_MIN_KERNEL_ADDRESS + 0x50000000;
+	entry = entry >> PAGE_SHIFT;
 
-  entry <<= PTE_PPN0_S;
-  entry |= PTE_V;
+	entry <<= PTE_PPN0_S;
+	entry |= PTE_V;
 
-  /* Set l1 page table */
-  pmap_store(&l1[slot], entry);
+	/* Set l1 page table */
+	pmap_store(&l1[slot], entry);
 	sfence_vma();
 
-  /* L2 page table */
-  slot = pmap_l2_index(DMAP_MIN_ADDRESS);
+	/* L2 page table */
+	slot = pmap_l2_index(DMAP_MIN_ADDRESS);
 
-  for (va = DMAP_MIN_ADDRESS;
-      va < DMAP_MAX_ADDRESS && pa < max_pa;
-	    pa += L2_SIZE, va += L2_SIZE, slot++) {
+	for (va = DMAP_MIN_ADDRESS;
+		va < DMAP_MAX_ADDRESS && pa < max_pa;
+		pa += L2_SIZE, va += L2_SIZE, slot++) {
+
 		KASSERT(slot < Ln_ENTRIES, ("Invalid L2 index"));
 
 		/* superpages */
@@ -640,12 +604,11 @@ pmap_bootstrap_dmap(vm_offset_t kern_l1, vm_paddr_t min_pa, vm_paddr_t max_pa)
 	}
 
 	/* Set the upper limit of the DMAP region */
-  dmap_phys_max = pa;
+	dmap_phys_max = pa;
 	dmap_max_addr = va;
 
 	sfence_vma();
 }
-#endif
 
 static vm_offset_t
 pmap_bootstrap_l3(vm_offset_t l1pt, vm_offset_t va, vm_offset_t l3_start)

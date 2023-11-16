@@ -66,17 +66,17 @@ static int
 db_csr(struct db_variable *vp, db_expr_t *valuep, int op)
 {
 	if (op == DB_VAR_GET) {
-    switch ((uintptr_t)vp->valuep) {
-      case CSR_SATP:
-        *valuep = csr_read64(CSR_SATP);
-        break;
-      case 0x5C0:
-        *valuep = csr_read64(0x5C0);
-        break;
-    }
-  } else {
-    return 0;
-  }
+		switch ((uintptr_t)vp->valuep) {
+			case CSR_SATP:
+				*valuep = csr_read64(CSR_SATP);
+				break;
+			case 0x5C0:
+				*valuep = csr_read64(0x5C0);
+				break;
+		}
+	} else {
+		return 0;
+	}
 	return (1);
 }
 

@@ -58,11 +58,11 @@ static struct ofw_compat_data compat_data[] = {
 };
 #endif
 
-#define	BL_XIP_RESSZ		1
+#define BL_XIP_RESSZ		1
 
 struct xip_softc
 {
-	struct bio_queue_head	bio_queue;
+	struct bio_queue_head bio_queue;
 	struct mtx		sc_mtx;
 	struct disk		*disk;
 	struct proc		*p;
@@ -70,26 +70,26 @@ struct xip_softc
 	u_int			taskstate;
 	uintptr_t		xipstart;
 	size_t		xipsize;
-	struct resource *	res[BL_XIP_RESSZ];
+	struct resource * res[BL_XIP_RESSZ];
 };
 
 static struct resource_spec bl_xip_res_spec[] = {
-	{ SYS_RES_MEMORY,	0,	RF_ACTIVE },
+	{ SYS_RES_MEMORY, 0,	RF_ACTIVE },
 	{ -1,			0,	0 }
 };
 
-#define	TSTATE_STOPPED	0
-#define	TSTATE_STOPPING	1
-#define	TSTATE_RUNNING	2
+#define TSTATE_STOPPED	0
+#define TSTATE_STOPPING 1
+#define TSTATE_RUNNING	2
 
-#define	BL_XIP_LOCK(_sc)			mtx_lock(&(_sc)->sc_mtx)
-#define	BL_XIP_UNLOCK(_sc)		mtx_unlock(&(_sc)->sc_mtx)
-#define	BL_XIP_LOCK_INIT(_sc) \
+#define BL_XIP_LOCK(_sc)			mtx_lock(&(_sc)->sc_mtx)
+#define BL_XIP_UNLOCK(_sc)		mtx_unlock(&(_sc)->sc_mtx)
+#define BL_XIP_LOCK_INIT(_sc) \
 	mtx_init(&_sc->sc_mtx, device_get_nameunit(_sc->dev), \
-	    "xip", MTX_DEF)
-#define	BL_XIP_LOCK_DESTROY(_sc)		mtx_destroy(&_sc->sc_mtx);
-#define	BL_XIP_ASSERT_LOCKED(_sc)	mtx_assert(&_sc->sc_mtx, MA_OWNED);
-#define	BL_XIP_ASSERT_UNLOCKED(_sc)	mtx_assert(&_sc->sc_mtx, MA_NOTOWNED);
+			"xip", MTX_DEF)
+#define BL_XIP_LOCK_DESTROY(_sc)		mtx_destroy(&_sc->sc_mtx);
+#define BL_XIP_ASSERT_LOCKED(_sc) mtx_assert(&_sc->sc_mtx, MA_OWNED);
+#define BL_XIP_ASSERT_UNLOCKED(_sc) mtx_assert(&_sc->sc_mtx, MA_NOTOWNED);
 
 /* bus entry points */
 static device_attach_t bl_xip_attach;
@@ -163,7 +163,7 @@ bl_xip_detach(device_t dev)
 			if (err != 0) {
 				sc->taskstate = TSTATE_RUNNING;
 				device_printf(sc->dev,
-				    "Failed to stop queue task\n");
+						"Failed to stop queue task\n");
 			}
 		}
 	}
