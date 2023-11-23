@@ -52,7 +52,7 @@
 
 #include "pic_if.h"
 
-#define	PLIC_MAX_IRQS		1024
+#define	PLIC_MAX_IRQS		128
 
 #define	PLIC_PRIORITY_BASE	0x000000U
 
