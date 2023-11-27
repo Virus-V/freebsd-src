@@ -47,6 +47,7 @@
 #include <geom/geom_disk.h>
 
 #include <machine/bus.h>
+#include <machine/sbi.h>
 
 #include <dev/fdt/fdt_common.h>
 #include <dev/ofw/ofw_bus_subr.h>
@@ -63,6 +64,8 @@
 #else
 #define dprintf(fmt, ...)
 #endif
+
+MALLOC_DEFINE(M_RPMSG_BUS, "rlbus", "rpmsg-lite bus");
 
 //#define device_printf(x,f, ...) printf(f, ##__VA_ARGS__)
 static struct resource_spec rpmsg_lite_spec[] = {
@@ -123,28 +126,110 @@ rpmsg_lite_intr(void *arg)
 	IPC2_WRITE4(sc, 0x28, irq_state);
 }
 
+struct rpmsg_ns_task {
+	struct rpmsg_lite_softc *sc;
+	struct task	ns_task;
+	uint32_t new_ept;
+	char ept_name[32];
+	uint32_t flags;
+};
+
+static void process_endpoints(void *arg, int npending);
+
 static void
 ipc_rpmsg_ns_callback(uint32_t new_ept, const char *new_ept_name, uint32_t flags, void *priv)
 {
 	struct rpmsg_lite_softc *sc __unused = priv;
-	device_printf(sc->dev, "Endpoint: %s - endpoint %d - flags %d\r\n", new_ept_name, new_ept, flags);
-}
+	struct rpmsg_ns_task *ns;
 
-static int32_t
-rpmsg_bm_rx_cb(void *payload, uint32_t payload_len, uint32_t src, void *priv)
-{
-	struct rpmsg_lite_softc *sc __unused = priv;
-	//device_printf(sc->dev, "Endpoint: %d - payload %p - len %d\r\n", src, payload, payload_len);
-	printf("Endpoint: %d - payload %p - len %d\r\n", src, payload, payload_len);
-	return RL_RELEASE;
+	ns = malloc(sizeof(*ns), M_RPMSG_BUS, M_NOWAIT);
+	if (ns == NULL) {
+		device_printf(sc->dev, "create ns task failed: %s - endpoint %d - flags %d\n", new_ept_name, new_ept, flags);
+		return;
+	}
+
+	ns->sc = sc;
+	ns->new_ept = new_ept;
+	ns->flags = flags;
+	strncpy(ns->ept_name, new_ept_name, sizeof(ns->ept_name));
+
+	TASK_INIT(&ns->ns_task, 0, process_endpoints, ns);
+
+	taskqueue_enqueue(sc->rp_tq, &ns->ns_task);
 }
 
 static void
+process_endpoints(void *arg, int npending)
+{
+	struct rpmsg_ns_task *ns = arg;
+	KASSERT(ns->sc != NULL, "rpmsg sc is null");
+
+	RPMSG_LOCK(ns->sc);
+
+	device_printf(ns->sc->dev, "Endpoint: %s - endpoint %d - flags %d\n", ns->ept_name, ns->new_ept, ns->flags);
+
+	if (strcmp(ns->ept_name, "wifi,blmac") == 0) {
+		if (ns->flags == RL_NS_CREATE) {
+			ns->sc->wifi_ep = ns->new_ept;
+			blmac_init(ns->sc);
+		} else {
+			device_printf(ns->sc->dev, "unsupport flag: %d\n", ns->flags);
+		}
+	}
+	RPMSG_UNLOCK(ns->sc);
+
+	free(ns, M_RPMSG_BUS);
+}
+
+struct rpmsg_rx_task {
+	struct rpmsg_lite_softc *sc;
+	struct task	ns_task;
+};
+
+static int32_t
+rpmsg_default_rx_cb(void *payload, uint32_t payload_len, uint32_t src, void *priv)
+{
+	struct rpmsg_lite_softc *sc __unused = priv;
+
+	RPMSG_LOCK(sc);
+
+	if (src == RPMSG_WIFI_CONFIG_EP(sc)) {
+		void *chan;
+		if (sc->wifi_config_chan == NULL) {
+			device_printf(sc->dev, "wifi config chan is null!\n");
+			goto _out;
+		}
+		if (payload_len != sizeof(*sc->wifi_config_chan)) {
+			device_printf(sc->dev, "payload len not equal wifi_config_chan!\n");
+			goto _out;
+		}
+		memcpy(sc->wifi_config_chan, payload, sizeof(*sc->wifi_config_chan));
+
+		chan = sc->wifi_config_chan;
+		sc->wifi_config_chan = NULL;
+
+		wakeup(chan);
+	} else if (src == RPMSG_WIFI_RX_EP(sc)) {
+		if (sc->wifi_rx_cb) {
+			sc->wifi_rx_cb(sc, payload, payload_len);
+		}
+	}
+
+_out:
+	RPMSG_UNLOCK(sc);
+
+	return RL_RELEASE;
+}
+
+#if 0
+static void
 rpmsg_lite_task(void *arg)
 {
+#if 0
 	struct rpmsg_lite_softc *sc;
 	struct rpmsg_lite_endpoint *rpmsg_ep;
-	char *test_msg = "hello, i'm freebsd!";
+	char buffer[32];
+	unsigned int cnt = 0;
 
 	sc = arg;
 	rpmsg_ep = rpmsg_lite_create_ept(sc->ipc_rpmsg, 16, rpmsg_bm_rx_cb, sc);
@@ -152,16 +237,22 @@ rpmsg_lite_task(void *arg)
 			device_printf(sc->dev, "Failed to create RPMSG endpoint\n");
 			goto _errout;
 	}
+#endif
 	for (;;) {
+#if 0
 		RPMSG_LOCK(sc);
-		msleep(sc, &sc->sc_mtx, PRIBIO, "rpmsg", hz); // sleep 1s
-		rpmsg_lite_send(sc->ipc_rpmsg, rpmsg_ep, 17, test_msg, strlen(test_msg), RL_BLOCK);
+		msleep(sc, &sc->sc_mtx, PRIBIO, "rpmsg", hz); /* sleep 1s */
+		snprintf(buffer, sizeof(buffer), "hello, i'm freebsd! cnt:%d", cnt++);
+		rpmsg_lite_send(sc->ipc_rpmsg, rpmsg_ep, 17, buffer, strlen(buffer), RL_BLOCK);
 		RPMSG_UNLOCK(sc);
+#endif
+		tsleep(arg, PRIBIO, "rpmsg", hz); /* sleep 1s */
 	}
 
-_errout:
+//_errout:
 	kproc_exit(0);
 }
+#endif
 
 static void
 rpmsg_lite_delayed_attach(void *arg)
@@ -200,11 +291,42 @@ rpmsg_lite_delayed_attach(void *arg)
 	}
 	device_printf(sc->dev, "RPMSG NS binded\r\n");
 
+	sc->default_ep = rpmsg_lite_create_ept(sc->ipc_rpmsg, 16, rpmsg_default_rx_cb, sc);
+	if (sc->default_ep == RL_NULL) {
+			device_printf(sc->dev, "Failed to create RPMSG endpoint\n");
+			goto _errout;
+	}
+
+	sc->rp_tq = taskqueue_create("rpmsg_taskq", M_WAITOK | M_ZERO, taskqueue_thread_enqueue, &sc->rp_tq);
+	if (sc->rp_tq == NULL) {
+			device_printf(sc->dev, "Failed to create RPMSG taskqueue\n");
+			goto _errout;
+	}
+	ret = taskqueue_start_threads(&sc->rp_tq, 1, PI_NET, "rpmsg_lite taskq %p", sc->ipc_rpmsg);
+	if (ret != 0) {
+			device_printf(sc->dev, "Failed to start taskqueue, errno: %d\n", ret);
+			goto _errout;
+	}
+
+	if (rpmsg_lite_master_linkup_remote(sc->ipc_rpmsg) != RL_SUCCESS) {
+			device_printf(sc->dev, "Failed to kick rpmsg remote\n");
+			goto _errout;
+	}
+	device_printf(sc->dev, "Link-UP e907!\n");
+
+	/* announce freebsd common ep ! e907 will reply all response to this ep */
+	if (rpmsg_ns_announce(sc->ipc_rpmsg, sc->default_ep, "freebsd", RL_NS_CREATE) != RL_SUCCESS) {
+			device_printf(sc->dev, "Failed to announce RPMSG NS\n");
+			goto _errout;
+	}
+
+#if 0
 	ret = kproc_create(&rpmsg_lite_task, sc, &sc->p, 0, 0, "task: rpmsg");
 	if (ret != 0) {
 			device_printf(sc->dev, "Failed to create RPMSG task, errno: %d\n", ret);
 			goto _errout;
 	}
+#endif
 	return;
 
 _errout:
@@ -236,6 +358,7 @@ rpmsg_lite_attach(device_t dev)
 
 	sc = device_get_softc(dev);
 	sc->dev = dev;
+	sc->wifi_rx_cb = NULL;
 
 	if (bus_alloc_resources(dev, rpmsg_lite_spec, sc->res)) {
 		device_printf(dev, "could not allocate resources\n");

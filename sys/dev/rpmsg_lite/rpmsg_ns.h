@@ -41,36 +41,33 @@
 #define RL_NS_EPT_ADDR (0x35u)
 
 /* Up to 32 flags available */
-enum rpmsg_ns_flags
-{
-    RL_NS_CREATE  = 0,
-    RL_NS_DESTROY = 1,
+enum rpmsg_ns_flags {
+	RL_NS_CREATE = 0,
+	RL_NS_DESTROY = 1,
 };
 
 /*! \typedef rpmsg_ns_new_ept_cb
     \brief New endpoint NS callback function type.
 */
-typedef void (*rpmsg_ns_new_ept_cb)(uint32_t new_ept, const char *new_ept_name, uint32_t flags, void *user_data);
+typedef void (*rpmsg_ns_new_ept_cb)(uint32_t new_ept, const char *new_ept_name,
+    uint32_t flags, void *user_data);
 
-struct rpmsg_ns_callback_data
-{
-    rpmsg_ns_new_ept_cb cb;
-    void *user_data;
+struct rpmsg_ns_callback_data {
+	rpmsg_ns_new_ept_cb cb;
+	void *user_data;
 };
 
-struct rpmsg_ns_context
-{
-    struct rpmsg_lite_endpoint *ept;
-    struct rpmsg_ns_callback_data *cb_ctxt;
+struct rpmsg_ns_context {
+	struct rpmsg_lite_endpoint *ept;
+	struct rpmsg_ns_callback_data *cb_ctxt;
 };
 
 typedef struct rpmsg_ns_context *rpmsg_ns_handle;
 
-struct rpmsg_ns_static_context_container
-{
-    struct rpmsg_lite_ept_static_context ept_ctxt;
-    struct rpmsg_ns_callback_data cb_ctxt;
-    struct rpmsg_ns_context ns_ctxt;
+struct rpmsg_ns_static_context_container {
+	struct rpmsg_lite_ept_static_context ept_ctxt;
+	struct rpmsg_ns_callback_data cb_ctxt;
+	struct rpmsg_ns_context ns_ctxt;
 };
 
 typedef struct rpmsg_ns_static_context_container rpmsg_ns_static_context;
@@ -91,20 +88,14 @@ extern "C" {
  * @param rpmsg_lite_dev    RPMsg-Lite instance
  * @param app_cb            Application nameservice callback
  * @param user_data         Application nameservice callback data
- * @param ns_ept_ctxt       Nameservice endpoint preallocated context pointer, used in case of static api
- * (RL_USE_STATIC_API)
+ * @param ns_ept_ctxt       Nameservice endpoint preallocated context pointer,
+ * used in case of static api (RL_USE_STATIC_API)
  *
  * @return RL_NULL on error, NameService handle on success.
  *
  */
-#if defined(RL_USE_STATIC_API) && (RL_USE_STATIC_API == 1)
 rpmsg_ns_handle rpmsg_ns_bind(struct rpmsg_lite_instance *rpmsg_lite_dev,
-                              rpmsg_ns_new_ept_cb app_cb,
-                              void *user_data,
-                              rpmsg_ns_static_context *ns_ept_ctxt);
-#else
-rpmsg_ns_handle rpmsg_ns_bind(struct rpmsg_lite_instance *rpmsg_lite_dev, rpmsg_ns_new_ept_cb app_cb, void *user_data);
-#endif /* RL_USE_STATIC_API */
+    rpmsg_ns_new_ept_cb app_cb, void *user_data);
 
 /*!
  * @brief Unregisters application nameservice callback and cleans up
@@ -115,7 +106,8 @@ rpmsg_ns_handle rpmsg_ns_bind(struct rpmsg_lite_instance *rpmsg_lite_dev, rpmsg_
  * @return Status of function execution, RL_SUCCESS on success.
  *
  */
-int32_t rpmsg_ns_unbind(struct rpmsg_lite_instance *rpmsg_lite_dev, rpmsg_ns_handle handle);
+int32_t rpmsg_ns_unbind(struct rpmsg_lite_instance *rpmsg_lite_dev,
+    rpmsg_ns_handle handle);
 
 /*!
  * @brief Sends name service announcement to remote device
@@ -129,9 +121,7 @@ int32_t rpmsg_ns_unbind(struct rpmsg_lite_instance *rpmsg_lite_dev, rpmsg_ns_han
  *
  */
 int32_t rpmsg_ns_announce(struct rpmsg_lite_instance *rpmsg_lite_dev,
-                          struct rpmsg_lite_endpoint *new_ept,
-                          const char *ept_name,
-                          uint32_t flags);
+    struct rpmsg_lite_endpoint *new_ept, const char *ept_name, uint32_t flags);
 
 //! @}
 

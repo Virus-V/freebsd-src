@@ -95,11 +95,7 @@
  *
  * @returns - execution status
  */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 int32_t env_init(void **env_context, void *env_init_data);
-#else
-int32_t env_init(void);
-#endif
 
 /*!
  * env_deinit
@@ -110,11 +106,7 @@ int32_t env_init(void);
  *
  * @returns - execution status
  */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 int32_t env_deinit(void *env_context);
-#else
-int32_t env_deinit(void);
-#endif
 
 /*!
  * -------------------------------------------------------------------------
@@ -158,20 +150,11 @@ void env_memcpy(void *dst, void const *src, uint32_t len);
 int32_t env_strcmp(const char *dst, const char *src);
 void env_strncpy(char *dest, const char *src, uint32_t len);
 int32_t env_strncmp(char *dest, const char *src, uint32_t len);
-#ifdef MCUXPRESSO_SDK
-/* MCUXpresso_SDK's PRINTF used in SDK examples */
-#include "fsl_debug_console.h"
-#if defined SDK_DEBUGCONSOLE && (SDK_DEBUGCONSOLE != DEBUGCONSOLE_DISABLE)
-#define env_print(...) (void)PRINTF(__VA_ARGS__)
-#else
-#define env_print(...)
-#endif
-#else
+
 /* When RPMsg_Lite being used outside of MCUXpresso_SDK use your own env_print
    implemenetation to avoid conflict with Misra 21.6 rule */
 #include <sys/systm.h>
 #define env_print(...) (void)printf(__VA_ARGS__)
-#endif /* MCUXPRESSO_SDK */
 
 /*!
  *-----------------------------------------------------------------------------
@@ -191,11 +174,7 @@ int32_t env_strncmp(char *dest, const char *src, uint32_t len);
  *
  * @return  - physical address
  */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 uint64_t env_map_vatopa(void *env, void *address);
-#else
-uint64_t env_map_vatopa(void *address);
-#endif
 
 /*!
  * env_map_patova
@@ -208,11 +187,7 @@ uint64_t env_map_vatopa(void *address);
  * @return  - logical address
  *
  */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 void *env_map_patova(void *env, uint64_t address);
-#else
-void *env_map_patova(uint64_t address);
-#endif
 
 /*!
  *-----------------------------------------------------------------------------
@@ -255,33 +230,6 @@ void env_wmb(void);
  */
 
 /*!
- * env_create_mutex
- *
- * Creates a mutex with given initial count.
- *
- * @param lock -  pointer to created mutex
- * @param count - initial count 0 or 1
- * @param context - context for mutex
- *
- * @return - status of function execution
- */
-#if defined(RL_USE_STATIC_API) && (RL_USE_STATIC_API == 1)
-int32_t env_create_mutex(void **lock, int32_t count, void *context);
-#else
-int32_t env_create_mutex(void **lock, int32_t count);
-#endif
-
-/*!
- * env_delete_mutex
- *
- * Deletes the given lock.
- *
- * @param lock - mutex to delete
- */
-
-void env_delete_mutex(void *lock);
-
-/*!
  * env_lock_mutex
  *
  * Tries to acquire the lock, if lock is not available then call to
@@ -291,7 +239,7 @@ void env_delete_mutex(void *lock);
  *
  */
 
-void env_lock_mutex(void *lock);
+void env_lock_mutex(void *env);
 
 /*!
  * env_unlock_mutex
@@ -301,58 +249,7 @@ void env_lock_mutex(void *lock);
  * @param lock - mutex to unlock
  */
 
-void env_unlock_mutex(void *lock);
-
-/*!
- * env_create_sync_lock
- *
- * Creates a synchronization lock primitive. It is used
- * when signal has to be sent from the interrupt context to main
- * thread context.
- *
- * @param lock  - pointer to created sync lock object
- * @param state - initial state , lock or unlocked
- * @param context - context for lock
- *
- * @returns - status of function execution
- */
-#define LOCKED   0
-#define UNLOCKED 1
-
-#if defined(RL_USE_STATIC_API) && (RL_USE_STATIC_API == 1)
-int32_t env_create_sync_lock(void **lock, int32_t state, void *context);
-#else
-int32_t env_create_sync_lock(void **lock, int32_t state);
-#endif
-
-/*!
- * env_create_sync_lock
- *
- * Deletes given sync lock object.
- *
- * @param lock  - sync lock to delete.
- *
- */
-
-void env_delete_sync_lock(void *lock);
-
-/*!
- * env_acquire_sync_lock
- *
- * Tries to acquire the sync lock.
- *
- * @param lock  - sync lock to acquire.
- */
-void env_acquire_sync_lock(void *lock);
-
-/*!
- * env_release_sync_lock
- *
- * Releases synchronization lock.
- *
- * @param lock  - sync lock to release.
- */
-void env_release_sync_lock(void *lock);
+void env_unlock_mutex(void *env);
 
 /*!
  * env_sleep_msec
@@ -361,103 +258,7 @@ void env_release_sync_lock(void *lock);
  *
  * @param num_msec -  delay in msecs
  */
-void env_sleep_msec(uint32_t num_msec);
-
-/*!
- * env_register_isr
- *
- * Registers interrupt handler data for the given interrupt vector.
- *
- * @param env           Pointer to environment context data
- * @param vector_id     Virtual interrupt vector number
- * @param data          Interrupt handler data (virtqueue)
- */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
-void env_register_isr(void *env, uint32_t vector_id, void *data);
-#else
-void env_register_isr(uint32_t vector_id, void *data);
-#endif
-
-/*!
- * env_unregister_isr
- *
- * Unregisters interrupt handler data for the given interrupt vector.
- *
- * @param env           Pointer to environment context data
- * @param vector_id     Virtual interrupt vector number
- */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
-void env_unregister_isr(void *env, uint32_t vector_id);
-#else
-void env_unregister_isr(uint32_t vector_id);
-#endif
-
-/*!
- * env_enable_interrupt
- *
- * Enables the given interrupt
- *
- * @param env           Pointer to environment context data
- * @param vector_id     Virtual interrupt vector number
- */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
-void env_enable_interrupt(void *env, uint32_t vector_id);
-#else
-void env_enable_interrupt(uint32_t vector_id);
-#endif
-
-/*!
- * env_disable_interrupt
- *
- * Disables the given interrupt.
- *
- * @param env           Pointer to environment context data
- * @param vector_id     Virtual interrupt vector number
- */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
-void env_disable_interrupt(void *env, uint32_t vector_id);
-#else
-void env_disable_interrupt(uint32_t vector_id);
-#endif
-
-/*!
- * env_map_memory
- *
- * Enables memory mapping for given memory region.
- *
- * @param pa   - physical address of memory
- * @param va   - logical address of memory
- * @param size - memory size
- * param flags - flags for cache/uncached  and access type
- *
- * Currently only first byte of flag parameter is used and bits mapping is defined as follow;
- *
- * Cache bits
- * 0x0000_0001 = No cache
- * 0x0000_0010 = Write back
- * 0x0000_0100 = Write through
- * 0x0000_x000 = Not used
- *
- * Memory types
- *
- * 0x0001_xxxx = Memory Mapped
- * 0x0010_xxxx = IO Mapped
- * 0x0100_xxxx = Shared
- * 0x1000_xxxx = TLB
- */
-
-/* Macros for caching scheme used by the shared memory */
-#define UNCACHED (1 << 0)
-#define WB_CACHE (1 << 1)
-#define WT_CACHE (1 << 2)
-
-/* Memory Types */
-#define MEM_MAPPED (1 << 4)
-#define IO_MAPPED  (1 << 5)
-#define SHARED_MEM (1 << 6)
-#define TLB_MEM    (1 << 7)
-
-void env_map_memory(uint32_t pa, uint32_t va, uint32_t size, uint32_t flags);
+void env_sleep_msec(void *env, uint32_t num_msec);
 
 /*!
  * env_get_timestamp
@@ -469,90 +270,6 @@ void env_map_memory(uint32_t pa, uint32_t va, uint32_t size, uint32_t flags);
 uint64_t env_get_timestamp(void);
 
 /*!
- * env_disable_cache
- *
- * Disables system caches.
- *
- */
-
-void env_disable_cache(void);
-
-typedef void LOCK;
-
-/*!
- * env_create_queue
- *
- * Creates a message queue.
- *
- * @param queue      Pointer to created queue
- * @param length     Maximum number of elements in the queue
- * @param item_size  Queue element size in bytes
- * @param queue_static_storage Pointer to queue static storage buffer
- * @param queue_static_context Pointer to queue static context
- *
- * @return - status of function execution
- */
-#if defined(RL_USE_STATIC_API) && (RL_USE_STATIC_API == 1)
-int32_t env_create_queue(void **queue,
-                         int32_t length,
-                         int32_t element_size,
-                         uint8_t *queue_static_storage,
-                         rpmsg_static_queue_ctxt *queue_static_context);
-#else
-int32_t env_create_queue(void **queue, int32_t length, int32_t element_size);
-#endif
-
-/*!
- * env_delete_queue
- *
- * Deletes the message queue.
- *
- * @param queue   Queue to delete
- */
-
-void env_delete_queue(void *queue);
-
-/*!
- * env_put_queue
- *
- * Put an element in a queue.
- *
- * @param queue       Queue to put element in
- * @param msg         Pointer to the message to be put into the queue
- * @param timeout_ms  Timeout in ms
- *
- * @return - status of function execution
- */
-
-int32_t env_put_queue(void *queue, void *msg, uintptr_t timeout_ms);
-
-/*!
- * env_get_queue
- *
- * Get an element out of a queue.
- *
- * @param queue       Queue to get element from
- * @param msg         Pointer to a memory to save the message
- * @param timeout_ms  Timeout in ms
- *
- * @return - status of function execution
- */
-
-int32_t env_get_queue(void *queue, void *msg, uintptr_t timeout_ms);
-
-/*!
- * env_get_current_queue_size
- *
- * Get current queue size.
- *
- * @param queue    Queue pointer
- *
- * @return - Number of queued items in the queue
- */
-
-int32_t env_get_current_queue_size(void *queue);
-
-/*!
  * env_isr
  *
  * Invoke RPMSG/IRQ callback
@@ -560,13 +277,8 @@ int32_t env_get_current_queue_size(void *queue);
  * @param env           Pointer to environment context data
  * @param vector        RPMSG IRQ vector ID.
  */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 void env_isr(void *env, uint32_t vector);
-#else
-void env_isr(uint32_t vector);
-#endif
 
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 /*!
  * env_get_platform_context
  *
@@ -602,7 +314,6 @@ int32_t env_init_interrupt(void *env, int32_t vq_id, void *isr_data);
  * @return        Execution status, 0 on success
  */
 int32_t env_deinit_interrupt(void *env, int32_t vq_id);
-#endif
 
 /*!
  * env_wait_for_link_up
@@ -617,7 +328,7 @@ int32_t env_deinit_interrupt(void *env, int32_t vq_id);
  * @return RL_TRUE when link up, RL_FALSE when timeout.
  *
  */
-uint32_t env_wait_for_link_up(volatile uint32_t *link_state, uint32_t link_id, uint32_t timeout_ms);
+uint32_t env_wait_for_link_up(void *env, volatile uint32_t *link_state, uint32_t link_id, uint32_t timeout_ms);
 
 /*!
  * env_tx_callback
@@ -626,7 +337,7 @@ uint32_t env_wait_for_link_up(volatile uint32_t *link_state, uint32_t link_id, u
  *
  * @param link_id     Link ID used to define the rpmsg-lite instance, see rpmsg_platform.h
  */
-void env_tx_callback(uint32_t link_id);
+void env_tx_callback(void *env, uint32_t link_id);
 
 /*!
  * env_notify
@@ -636,12 +347,5 @@ void env_tx_callback(uint32_t link_id);
  * @param env         Pointer to environment context data
  * @param vector      Link ID used to define the rpmsg-lite instance, see rpmsg_platform.h
  */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
 void env_notify(void *env, uint32_t vector);
-#else
-void env_notify(uint32_t vector);
-#endif
-
-int32_t platform_init_interrupt(uint32_t vector_id, void *isr_data);
-int32_t platform_deinit_interrupt(uint32_t vector_id);
 #endif /* RPMSG_ENV_H_ */

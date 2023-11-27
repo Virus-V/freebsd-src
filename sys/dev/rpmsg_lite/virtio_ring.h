@@ -33,6 +33,8 @@
 #ifndef VIRTIO_RING_H
 #define VIRTIO_RING_H
 
+#include <sys/types.h>
+
 /* This marks a buffer as continuing via the next field. */
 #define VRING_DESC_F_NEXT 1U
 /* This marks a buffer as write-only (otherwise read-only). */

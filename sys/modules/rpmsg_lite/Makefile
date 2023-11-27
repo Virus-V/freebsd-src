@@ -32,6 +32,8 @@ SRCS+=	rpmsg_env_freebsd.c
 SRCS+=	rpmsg_lite.c rpmsg_ns.c
 SRCS+=	virtio/virtqueue.c
 
+SRCS+=	blmac/blmac.c blmac/blmac_rx.c blmac/blmac_tx.c blmac/blmac_config.c
+
 EXPORT_SYMS=	YES
 
 .include <bsd.kmod.mk>

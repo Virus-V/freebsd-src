@@ -135,9 +135,6 @@ struct virtqueue
     uint16_t padd;       /* aligned to 32bits after this: */
 
     void *priv;          /* private pointer, upper layer instance pointer */
-#if defined(RL_USE_ENVIRONMENT_CONTEXT) && (RL_USE_ENVIRONMENT_CONTEXT == 1)
-    void *env;           /* private pointer to environment layer internal context */
-#endif
 };
 
 /* struct to hold vring specific information */
@@ -203,22 +200,12 @@ typedef void vq_notify(struct virtqueue *vq);
 
 #endif
 
-#if defined(RL_USE_STATIC_API) && (RL_USE_STATIC_API == 1)
-int32_t virtqueue_create_static(uint16_t id,
-                                const char *name,
-                                struct vring_alloc_info *ring,
-                                void (*callback_fc)(struct virtqueue *vq),
-                                void (*notify_fc)(struct virtqueue *vq),
-                                struct virtqueue **v_queue,
-                                struct vq_static_context *vq_ctxt);
-#else
 int32_t virtqueue_create(uint16_t id,
                          const char *name,
                          struct vring_alloc_info *ring,
                          void (*callback_fc)(struct virtqueue *vq),
                          void (*notify_fc)(struct virtqueue *vq),
-                         struct virtqueue **v_queue);
-#endif
+                         struct virtqueue *v_queue);
 
 int32_t virtqueue_add_buffer(struct virtqueue *vq, uint16_t head_idx);
 

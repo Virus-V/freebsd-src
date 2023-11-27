@@ -38,9 +38,8 @@
 
 #include "dev/rpmsg_lite/rpmsg_compiler.h"
 #include "dev/rpmsg_lite/rpmsg_env.h"
-#include "dev/rpmsg_lite/virtqueue.h"
-
 #include "dev/rpmsg_lite/rpmsg_lite_bus.h"
+#include "dev/rpmsg_lite/virtqueue.h"
 #include "sys/systm.h"
 
 MALLOC_DEFINE(M_RPMSG, "rpmsg", "rpmsg-lite environment");
@@ -60,7 +59,7 @@ static struct isr_info isr_table[ISR_COUNT];
 #endif
 
 uint32_t
-env_wait_for_link_up(volatile uint32_t *link_state, uint32_t link_id,
+env_wait_for_link_up(void *env, volatile uint32_t *link_state, uint32_t link_id,
     uint32_t timeout_ms)
 {
 	while (*link_state != 1U) {
@@ -69,7 +68,7 @@ env_wait_for_link_up(volatile uint32_t *link_state, uint32_t link_id,
 }
 
 void
-env_tx_callback(uint32_t link_id)
+env_tx_callback(void *env, uint32_t link_id)
 {
 }
 
@@ -83,7 +82,8 @@ env_init(void **env_context, void *env_init_data)
 }
 
 void *
-env_get_platform_context(void *env_context) {
+env_get_platform_context(void *env_context)
+{
 	return env_context;
 }
 
@@ -168,51 +168,39 @@ env_wmb(void)
 uint64_t
 env_map_vatopa(void *env, void *address)
 {
-	struct rpmsg_lite_softc * sc = (struct rpmsg_lite_softc *)env;
+	struct rpmsg_lite_softc *sc = (struct rpmsg_lite_softc *)((struct rpmsg_lite_instance *)env)->env;
 	return ((uintptr_t)address - sc->ocram_virt) + sc->ocram_phy;
 }
 
 void *
 env_map_patova(void *env, uint64_t address)
 {
-	struct rpmsg_lite_softc * sc = (struct rpmsg_lite_softc *)env;
+	struct rpmsg_lite_softc *sc = (struct rpmsg_lite_softc *)((struct rpmsg_lite_instance *)env)->env;
 	return (void *)((address - sc->ocram_phy) + sc->ocram_virt);
 }
 
-int32_t
-env_create_mutex(void **lock, int32_t count)
-{
-	*lock = lock;
-	return 0;
-}
-
 void
-env_delete_mutex(void *lock)
-{
-}
-
-void
-env_lock_mutex(void *lock)
+env_lock_mutex(void *env)
 {
 	/* No mutex needed for RPMsg-Lite in BM environment,
 	 * since the API is not shared with ISR context. */
 }
 
 void
-env_unlock_mutex(void *lock)
+env_unlock_mutex(void *env)
 {
 	/* No mutex needed for RPMsg-Lite in BM environment,
 	 * since the API is not shared with ISR context. */
 }
 
 void
-env_sleep_msec(uint32_t num_msec)
+env_sleep_msec(void *env, uint32_t num_msec)
 {
-	//pause("rpwait", hz); // 1s
+	// pause("rpwait", hz); // 1s
 	pause("rpwait", (hz / 1000) * num_msec); // 1ms
 }
 
-void
+static void
 env_register_isr(void *env, uint32_t vector_id, void *data)
 {
 	RL_ASSERT(vector_id < ISR_COUNT);
@@ -221,7 +209,7 @@ env_register_isr(void *env, uint32_t vector_id, void *data)
 	}
 }
 
-void
+static void
 env_unregister_isr(void *env, uint32_t vector_id)
 {
 	RL_ASSERT(vector_id < ISR_COUNT);
@@ -230,24 +218,16 @@ env_unregister_isr(void *env, uint32_t vector_id)
 	}
 }
 
-void
-env_enable_interrupt(void *env, uint32_t vector_id)
-{
-}
-
-void
-env_disable_interrupt(void *env, uint32_t vector_id)
-{
-}
-
 int32_t
-env_init_interrupt(void *env, int32_t vq_id, void *isr_data) {
+env_init_interrupt(void *env, int32_t vq_id, void *isr_data)
+{
 	env_register_isr(env, vq_id, isr_data);
 	return 0;
 }
 
 int32_t
-env_deinit_interrupt(void *env, int32_t vq_id) {
+env_deinit_interrupt(void *env, int32_t vq_id)
+{
 	env_unregister_isr(env, vq_id);
 	return 0;
 }
@@ -255,7 +235,7 @@ env_deinit_interrupt(void *env, int32_t vq_id) {
 void
 env_notify(void *env, uint32_t vector)
 {
-	struct rpmsg_lite_softc * sc = (struct rpmsg_lite_softc *)env;
+	struct rpmsg_lite_softc *sc = (struct rpmsg_lite_softc *)env;
 
 	// Write IPC0 Base IPC_CPU1_IPC_ISWR
 	IPC0_WRITE4(sc, 0, (1 << (IPC_MSG_RPMSG0 + vector + 16)));
